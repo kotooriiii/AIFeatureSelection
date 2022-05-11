@@ -32,6 +32,7 @@ public class FeatureSelectionTree<T>
      * The set (unique) of features for feature selection
      */
     private final Set<T> maxFeatures;
+    private boolean isDebug = false;
 
     public class Node
     {
@@ -45,6 +46,9 @@ public class FeatureSelectionTree<T>
         //The amount of moves that were needed to get to this state
         private int moves = 0;
 
+        private final double errorSavedCost = Double.NEGATIVE_INFINITY;
+        private double savedCost;
+
         /**
          * A constructor that creates a (child) node given you have a parent node and the state data.
          *
@@ -56,6 +60,7 @@ public class FeatureSelectionTree<T>
             this.parent = parent;
             this.features = features;
             this.children = new ArrayList<Node>();
+            savedCost = errorSavedCost;
         }
 
         /**
@@ -67,6 +72,22 @@ public class FeatureSelectionTree<T>
         {
             this.features = features;
             this.children = new ArrayList<Node>();
+            savedCost = errorSavedCost;
+        }
+
+        public void setSavedCost(double savedCost)
+        {
+            this.savedCost = savedCost;
+        }
+
+        public double getSavedCost()
+        {
+            return savedCost;
+        }
+
+        public boolean isSavedCostSet()
+        {
+            return this.savedCost != this.errorSavedCost;
         }
 
         /**
@@ -166,10 +187,10 @@ public class FeatureSelectionTree<T>
 
                 if (parent.parent == null) //Initial State condition
                 {
-                    operatorName = "Initial State (no operator)";
+                    operatorName = "Initial State";
                 } else //Loops middle nodes and grabs operator name and parent states
                 {
-                    operatorName =  "State " + parent.getMoves();
+                    operatorName = "State " + parent.getMoves();
                 }
 
                 part += operatorName + "\n" + parent.features.toString() + "\n\n";
@@ -224,7 +245,7 @@ public class FeatureSelectionTree<T>
 
         this.root = new Node(this.search.getInitialSet());
 
-        this.frontier = new PriorityQueue<Node>(evaluation); //todo implement this priority queue comparator
+        this.frontier = new PriorityQueue<Node>(evaluation);
         this.frontier.add(root);
     }
 
@@ -237,8 +258,8 @@ public class FeatureSelectionTree<T>
     public Node findSolution()
     {
 
+        boolean isFirst = true;
         //Keep looping until the frontier is empty
-        frontierLoop:
         while (!frontier.isEmpty())
         {
 
@@ -247,33 +268,54 @@ public class FeatureSelectionTree<T>
             final Node poll = frontier.poll();
             frontier.clear(); //greedy algorithm, clear dont backtrack
 
-            this.search.nextFeature(poll);
-
-
-            boolean isCurrentLocalOptimal = false;
-            areChildrenLowerAccuracy:
-            for (Node node : poll.getChildren())
+            if (isFirst)
             {
-                if (evaluation.compare(poll, node) > 0)
+                isFirst = false;
+                if (isDebug)
                 {
-                    isCurrentLocalOptimal = true;
-                } else
-                {
-                    isCurrentLocalOptimal = false;
-                    break areChildrenLowerAccuracy;
-
+                    System.out.println("Default Rate Accuracy: " + format(evaluation.getAccuracy(poll)));
                 }
             }
 
-            if (isCurrentLocalOptimal || poll.getChildren().isEmpty())
-            {
-                this.solution = poll;
+            this.search.nextFeature(poll);
 
-                break frontierLoop;
+
+            for (Node node : poll.getChildren())
+            {
+                if (isDebug)
+                    System.out.println("Using feature(s) {" + node.getFeatures().toString() + "} accuracy is " + format(evaluation.getAccuracy(node)));
+
             }
+
+
+            if(isDebug)
+            System.out.println();
+
+            if (evaluation.compare(this.frontier.peek(),  poll) > 0|| poll.getChildren().isEmpty())
+            {
+                if (isDebug)
+                {
+                    System.out.println("Accuracy decreased in all children.");
+                    System.out.println("Search finished.");
+                    System.out.println("The best feature subset was using feature(s) {" + poll.getFeatures().toString() + "} accuracy is " + format(evaluation.getAccuracy(poll)));
+                }
+                this.solution = poll;
+                break;
+            } else
+            {
+                if (isDebug)
+                {
+                    System.out.println("Accuracy increased in a child.");
+                    System.out.println("Choosing child with best feature subset using feature(s) {" + this.frontier.peek().getFeatures().toString() + "} accuracy is " + format(evaluation.getAccuracy(this.frontier.peek())));
+                }
+            }
+
+            if(isDebug)
+                System.out.println();
         }
         return solution;
     }
+
     /**
      * Adds a child node to the supplied Node object.
      *
@@ -346,5 +388,15 @@ public class FeatureSelectionTree<T>
         this.solution = null;
         this.frontier = new PriorityQueue<Node>(evaluation); //todo implement this priority queue comparator
         this.frontier.add(root);
+    }
+
+    public void setDebug(boolean isDebug)
+    {
+        this.isDebug = isDebug;
+    }
+
+    public String format(double value)
+    {
+        return String.format("%.2f", value * 100) + "%";
     }
 }

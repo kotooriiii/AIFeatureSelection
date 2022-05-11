@@ -19,9 +19,6 @@ public class ForwardSelectionSearch<T> extends AbstractSearch<T>
         for (T feature : this.tree.getMaxFeatures())
         {
 
-            //todo Implement search type (forward selection AND backwards selection)
-            //default: this is forward selection
-            //skip, we already have this feature
             if (node.getFeatures().contains(feature))
                 continue;
 

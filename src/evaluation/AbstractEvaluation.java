@@ -23,11 +23,11 @@ public abstract class AbstractEvaluation<T> implements Comparator<FeatureSelecti
         double accuracy2 = getAccuracy(o2);
 
         if(accuracy1 > accuracy2)
-            return 1;
+            return -1;
         else if (accuracy1 == accuracy2)
             return 0;
         else if (accuracy1 < accuracy2)
-            return -1;
+            return 1;
 
         //never occurs
         return 0;

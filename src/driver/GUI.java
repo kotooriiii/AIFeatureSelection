@@ -110,7 +110,7 @@ public class GUI
         {
             System.out.println("-- Select Evaluation --");
             System.out.println("1. Random Evaluation");
-            System.out.println("2. Leave One Out Evaluation");
+            System.out.println("2. Leave One Out Evaluation (DO NOT CHOOSE THIS, WORK IN PROGRESS, THIS IS FOR PART 2)");
 
             input = scanner.nextInt();
 

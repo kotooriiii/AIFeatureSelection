@@ -169,7 +169,7 @@ public class GUI
 
     public static void clearScreen()
     {
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 7; i++)
             System.out.println();
     }
 }

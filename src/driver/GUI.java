@@ -1,8 +1,12 @@
 package driver;
 
+import classifier.AbstractClassifier;
 import classifier.KNNClassifier;
+import evaluation.AbstractEvaluation;
 import evaluation.LeaveOneOutEvaluation;
 import evaluation.RandomEvaluation;
+import instance.DataInstance;
+import search.AbstractSearch;
 import search.BackwardSelectionSearch;
 import search.ForwardSelectionSearch;
 import tree.FeatureSelectionTree;
@@ -18,6 +22,10 @@ public class GUI
 {
 
     private final Set<Integer> maxFeatures;
+
+    private AbstractClassifier classifier;
+    private AbstractEvaluation evaluation;
+    private AbstractSearch search;
 
     //Scanning keyboard input
     private Scanner scanner;
@@ -39,7 +47,7 @@ public class GUI
         System.out.println("Number Of Features (expecting integer): ");
         final int input = scanner.nextInt();
 
-        for(int i = 1; i <= input; i++)
+        for (int i = 1; i <= input; i++)
         {
             maxFeatures.add(i);
         }
@@ -47,7 +55,28 @@ public class GUI
         clearScreen();
     }
 
-    private void populateClassifier(FeatureSelectionTree<Integer> tree)
+    private File populateFile()
+    {
+        while(true)
+        {
+            System.out.println("-- Type File Name --");
+            System.out.println("File name: ");
+
+            final String line = scanner.nextLine();
+            try
+            {
+                File file = new File(line);
+                if(!file.exists())
+                    throw new NullPointerException();
+              return file;
+            } catch (NullPointerException e)
+            {
+                System.out.println("Error: Incorrect file name");
+            }
+        }
+    }
+
+    private void populateClassifier(MachineLearningManager manager)
     {
 
 
@@ -62,17 +91,18 @@ public class GUI
             switch (input)
             {
                 case 1:
-                    tree.setClassifier(new KNNClassifier<Integer>());
+                    classifier = new KNNClassifier(1, manager.getDataInstanceManager(), manager.getTree()); //todo select K?
                     break;
                 default:
                     input = 0;
                     break;
             }
         }
+        manager.setClassifier(classifier);
         clearScreen();
     }
 
-    private void populateSearch(FeatureSelectionTree<Integer> tree)
+    private void populateSearch(MachineLearningManager manager)
     {
 
 
@@ -88,20 +118,21 @@ public class GUI
             switch (input)
             {
                 case 1:
-                    tree.setSearch(new ForwardSelectionSearch<>(tree));
+                    search = new ForwardSelectionSearch(manager.getTree());
                     break;
                 case 2:
-                    tree.setSearch(new BackwardSelectionSearch<>(tree));
+                    search = new BackwardSelectionSearch(manager.getTree());
                     break;
                 default:
                     input = 0;
                     break;
             }
         }
+        manager.setSearch(search);
         clearScreen();
     }
 
-    private void populateEvaluation(FeatureSelectionTree<Integer> tree)
+    private void populateEvaluation(MachineLearningManager manager)
     {
 
 
@@ -117,16 +148,17 @@ public class GUI
             switch (input)
             {
                 case 1:
-                    tree.setEvaluation(new RandomEvaluation<>());
+                    evaluation = new RandomEvaluation();
                     break;
                 case 2:
-                    tree.setEvaluation(new LeaveOneOutEvaluation<>());
+                    evaluation = new LeaveOneOutEvaluation();
                     break;
                 default:
                     input = 0;
                     break;
             }
         }
+        manager.setEvaluation(evaluation);
         clearScreen();
     }
 
@@ -136,32 +168,38 @@ public class GUI
     public void sendMenu()
     {
 
+        //populateState();
+        File file = populateFile();
 
-        populateState();
+        MachineLearningManager machineLearningManager = new MachineLearningManager(file);
 
-        FeatureSelectionTree<Integer> featureSelectionTree = new FeatureSelectionTree<>(maxFeatures);
+        populateSearch(machineLearningManager);
+        populateEvaluation(machineLearningManager);
 
-        featureSelectionTree.setDebug(true);
+        machineLearningManager.getTree().init();
 
-        populateClassifier(featureSelectionTree);
-        populateSearch(featureSelectionTree);
-        populateEvaluation(featureSelectionTree);
+        populateClassifier(machineLearningManager);
 
-        System.out.println("Searching Solution\n");
+
+        machineLearningManager.getClassifier().train();
+
         clearScreen();
 
-        final FeatureSelectionTree<Integer>.Node solution = featureSelectionTree.findSolution();
+        //todo do the test here
+        DataInstance dataInstance = new DataInstance();
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("0"), 2.1530859e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("1"), 4.4095784e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("2"), 3.6216757e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("3"), 3.8451064e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("4"), 2.9807186e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("5"), 2.0171732e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("6"), 5.3973550e-001);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("7"), 3.3933456e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("8"), 2.2950856e+000);
+        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("9"), 3.0431002e+000);
 
-        if (solution == null)
-        {
-            System.out.println("Error: Solution Not Found");
-        } else
-        {
-            System.out.println();
-            System.out.println();
-            System.out.println(solution);
-        }
-
+        machineLearningManager.getClassifier().test(dataInstance);
+        System.out.println("Guessing class to be....: " + machineLearningManager.getDataInstanceManager().getDataTable().getClassName(dataInstance.getClassData()));
 
         scanner.close();
     }

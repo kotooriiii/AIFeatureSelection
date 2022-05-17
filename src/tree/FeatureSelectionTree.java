@@ -1,26 +1,15 @@
 package tree;
 
 
-import classifier.AbstractClassifier;
-import classifier.KNNClassifier;
-import evaluation.AbstractEvaluation;
-import evaluation.RandomEvaluation;
-import search.AbstractSearch;
-import search.BackwardSelectionSearch;
-import search.ForwardSelectionSearch;
+import driver.MachineLearningManager;
 
 import java.util.*;
 
-public class FeatureSelectionTree<T>
+public class FeatureSelectionTree
 {
 
     // The initial root node
     private Node root;
-
-    //The algorithm function which decides how to calculate accuracy.
-    private AbstractEvaluation<T> evaluation;
-    private AbstractClassifier classifier; //todo document this
-    private AbstractSearch search;
 
     //The list of nodes that are ready to expand/check if goal state.
     private Queue<Node> frontier;
@@ -28,16 +17,17 @@ public class FeatureSelectionTree<T>
     //The solution node. This node is important for us to know the path from initial to here.
     private Node solution = null;
 
+    private MachineLearningManager manager;
+
     /**
      * The set (unique) of features for feature selection
      */
-    private final Set<T> maxFeatures;
-    private boolean isDebug = false;
+    private final Set<Integer> maxFeatures;
 
     public class Node
     {
         //The set of features in this node
-        private final Set<T> features;
+        private final Set<Integer> features;
         //The parent of this node
         private Node parent;
         //The list of children of this node
@@ -55,7 +45,7 @@ public class FeatureSelectionTree<T>
          * @param parent   The parent of *this* node. If this value is null, this becomes the root.
          * @param features The state data
          */
-        public Node(Node parent, Set<T> features)
+        public Node(Node parent, Set<Integer> features)
         {
             this.parent = parent;
             this.features = features;
@@ -68,7 +58,7 @@ public class FeatureSelectionTree<T>
          *
          * @param features Initial set of features
          */
-        private Node(Set<T> features)
+        private Node(Set<Integer> features)
         {
             this.features = features;
             this.children = new ArrayList<Node>();
@@ -95,7 +85,7 @@ public class FeatureSelectionTree<T>
          *
          * @return features of this node
          */
-        public Set<T> getFeatures()
+        public Set<Integer> getFeatures()
         {
             return this.features;
         }
@@ -217,13 +207,13 @@ public class FeatureSelectionTree<T>
 
                 Node node = (Node) obj;
 
-                for (T feature : this.getFeatures())
+                for (Integer feature : this.getFeatures())
                 {
                     if (!node.getFeatures().contains(feature))
                         return false;
                 }
 
-                for (T feature : node.getFeatures())
+                for (Integer feature : node.getFeatures())
                 {
                     if (!this.getFeatures().contains(feature))
                         return false;
@@ -235,20 +225,27 @@ public class FeatureSelectionTree<T>
         }
     }
 
-    public FeatureSelectionTree(Set<T> maxFeatures)
+    public FeatureSelectionTree(MachineLearningManager manager, Set<Integer> maxFeatures)
     {
+        this.manager = manager;
+
         this.maxFeatures = maxFeatures;
+    }
 
-        this.evaluation = new RandomEvaluation<T>();
-        this.classifier = new KNNClassifier(); //todo implement this
-        this.search = new ForwardSelectionSearch<T>(this);
-
-        this.root = new Node(this.search.getInitialSet());
-
-        this.frontier = new PriorityQueue<Node>(evaluation);
+    public void init()
+    {
+        this.setFrontier(new PriorityQueue<>(this.manager.getEvaluation()));
+        this.root = new Node(this.manager.getSearch().getInitialSet());
+        this.solution = null;
+        this.frontier.clear();
         this.frontier.add(root);
     }
 
+    public void setFrontier(Queue<Node> frontier)
+    {
+        this.frontier = frontier;
+
+    }
 
     /**
      * Finds the solution starting from the initial node (root).
@@ -271,47 +268,48 @@ public class FeatureSelectionTree<T>
             if (isFirst)
             {
                 isFirst = false;
-                if (isDebug)
+                if (manager.isDebug())
                 {
-                    System.out.println("Default Rate Accuracy: " + format(evaluation.getAccuracy(poll)));
+                    System.out.println("Default Rate Accuracy: " + format(manager.getEvaluation().getAccuracy(poll)));
                 }
             }
 
-            this.search.nextFeature(poll);
+            manager.getSearch().nextFeature(poll);
 
 
             for (Node node : poll.getChildren())
             {
-                if (isDebug)
-                    System.out.println("Using feature(s) {" + node.getFeatures().toString() + "} accuracy is " + format(evaluation.getAccuracy(node)));
+                if (manager.isDebug())
+                    System.out.println("Using feature(s) {" + node.getFeatures().toString() + "} accuracy is " + format(manager.getEvaluation().getAccuracy(node)));
 
             }
 
 
-            if(isDebug)
-            System.out.println();
-
-            if (evaluation.compare(this.frontier.peek(),  poll) > 0|| poll.getChildren().isEmpty())
+            if (manager.isDebug())
             {
-                if (isDebug)
+                System.out.println();
+            }
+
+            if (manager.getEvaluation().compare(this.frontier.peek(), poll) > 0 || poll.getChildren().isEmpty())
+            {
+                if (manager.isDebug())
                 {
                     System.out.println("Accuracy decreased in all children.");
                     System.out.println("Search finished.");
-                    System.out.println("The best feature subset was using feature(s) {" + poll.getFeatures().toString() + "} accuracy is " + format(evaluation.getAccuracy(poll)));
+                    System.out.println("The best feature subset was using feature(s) {" + poll.getFeatures().toString() + "} accuracy is " + format(manager.getEvaluation().getAccuracy(poll)));
                 }
                 this.solution = poll;
                 break;
             } else
             {
-                if (isDebug)
+                if (manager.isDebug())
                 {
                     System.out.println("Accuracy increased in a child.");
-                    System.out.println("Choosing child with best feature subset using feature(s) {" + this.frontier.peek().getFeatures().toString() + "} accuracy is " + format(evaluation.getAccuracy(this.frontier.peek())));
+                    System.out.println("Choosing child with best feature subset using feature(s) {" + this.frontier.peek().getFeatures().toString() + "} accuracy is " + format(manager.getEvaluation().getAccuracy(this.frontier.peek())));
                 }
             }
 
-            if(isDebug)
-                System.out.println();
+            if (manager.isDebug()) System.out.println();
         }
         return solution;
     }
@@ -323,13 +321,13 @@ public class FeatureSelectionTree<T>
      * @param data    The new Set of features
      * @return
      */
-    public final FeatureSelectionTree<T>.Node add(FeatureSelectionTree<T>.Node current, Set<T> data)
+    public final FeatureSelectionTree.Node add(FeatureSelectionTree.Node current, Set<Integer> data)
     {
         assert current != null;
         if (data == null)
             return null;
 
-        FeatureSelectionTree<T>.Node child = new FeatureSelectionTree<T>.Node(current, data);
+        FeatureSelectionTree.Node child = new FeatureSelectionTree.Node(current, data);
         current.getChildren().add(child);
 
         return child;
@@ -352,48 +350,12 @@ public class FeatureSelectionTree<T>
         return frontier;
     }
 
-    public AbstractEvaluation<T> getEvaluation()
-    {
-        return evaluation;
-    }
 
-    public AbstractClassifier getClassifier()
-    {
-        return classifier;
-    }
-
-    public Set<T> getMaxFeatures()
+    public Set<Integer> getMaxFeatures()
     {
         return maxFeatures;
     }
 
-    public void setClassifier(AbstractClassifier<T> classifier)
-    {
-        this.classifier = classifier;
-    }
-
-    public void setSearch(AbstractSearch<T> search)
-    {
-        this.search = search;
-        this.root = new Node(this.search.getInitialSet());
-        this.solution = null;
-        this.frontier.clear();
-        this.frontier.add(root);
-
-    }
-
-    public void setEvaluation(AbstractEvaluation<T> evaluation)
-    {
-        this.evaluation = evaluation;
-        this.solution = null;
-        this.frontier = new PriorityQueue<Node>(evaluation); //todo implement this priority queue comparator
-        this.frontier.add(root);
-    }
-
-    public void setDebug(boolean isDebug)
-    {
-        this.isDebug = isDebug;
-    }
 
     public String format(double value)
     {

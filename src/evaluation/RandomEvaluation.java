@@ -2,10 +2,10 @@ package evaluation;
 
 import tree.FeatureSelectionTree;
 
-public class RandomEvaluation<T> extends AbstractEvaluation<T>
+public class RandomEvaluation extends AbstractEvaluation
 {
     @Override
-    public double getAccuracy(FeatureSelectionTree<T>.Node node)
+    public double getAccuracy(FeatureSelectionTree.Node node)
     {
         if (node.isSavedCostSet())
         {

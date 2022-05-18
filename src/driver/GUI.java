@@ -141,7 +141,7 @@ public class GUI
         {
             System.out.println("-- Select Evaluation --");
             System.out.println("1. Random Evaluation");
-            System.out.println("2. Leave One Out Evaluation (DO NOT CHOOSE THIS, WORK IN PROGRESS, THIS IS FOR PART 2)");
+            System.out.println("2. Leave One Out Evaluation");
 
             input = scanner.nextInt();
 
@@ -183,18 +183,40 @@ public class GUI
 
 
         clearScreen();
+        System.out.println("-");
+        System.out.println("-");
+        System.out.println("NOTE: Feature subsets are 0-based!");
+        System.out.println("-");
+        System.out.println("-");
+        System.out.println();
+        System.out.println("-");
+        System.out.println("-");
+        System.out.println("Find best feature subset:");
+        System.out.println("-");
+        System.out.println("-");
 
         final FeatureSelectionTree.Node solution = machineLearningManager.getTree().findSolution();
 
 
+        clearScreen();
+
+        System.out.println("-");
+        System.out.println("-");
+
         if (solution == null)
         {
             System.out.println("Error: Solution Not Found");
+            System.out.println("-");
+            System.out.println("-");
         } else
         {
             System.out.println("Solution: ");
+            System.out.println("-");
+            System.out.println("-");
             System.out.println(solution);
         }
+
+        //todo show times and other steps?
 
         scanner.close();
     }

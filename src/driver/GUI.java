@@ -91,7 +91,7 @@ public class GUI
             switch (input)
             {
                 case 1:
-                    classifier = new KNNClassifier(1, manager.getDataInstanceManager(), manager.getTree()); //todo select K?
+                    classifier = new KNNClassifier(1); //todo select K?
                     break;
                 default:
                     input = 0;
@@ -148,10 +148,10 @@ public class GUI
             switch (input)
             {
                 case 1:
-                    evaluation = new RandomEvaluation();
+                    evaluation = new RandomEvaluation(manager.getDataInstanceManager(), manager.getClassifier());
                     break;
                 case 2:
-                    evaluation = new LeaveOneOutEvaluation();
+                    evaluation = new LeaveOneOutEvaluation(manager.getDataInstanceManager(), manager.getClassifier());
                     break;
                 default:
                     input = 0;
@@ -174,32 +174,27 @@ public class GUI
         MachineLearningManager machineLearningManager = new MachineLearningManager(file);
 
         populateSearch(machineLearningManager);
+
+        populateClassifier(machineLearningManager);
+
         populateEvaluation(machineLearningManager);
 
         machineLearningManager.getTree().init();
 
-        populateClassifier(machineLearningManager);
-
-
-        machineLearningManager.getClassifier().train();
 
         clearScreen();
 
-        //todo do the test here
-        DataInstance dataInstance = new DataInstance();
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("0"), 2.1530859e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("1"), 4.4095784e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("2"), 3.6216757e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("3"), 3.8451064e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("4"), 2.9807186e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("5"), 2.0171732e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("6"), 5.3973550e-001);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("7"), 3.3933456e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("8"), 2.2950856e+000);
-        dataInstance.putFeatureData(machineLearningManager.getDataInstanceManager().getDataTable().addFeature("9"), 3.0431002e+000);
+        final FeatureSelectionTree.Node solution = machineLearningManager.getTree().findSolution();
 
-        machineLearningManager.getClassifier().test(dataInstance);
-        System.out.println("Guessing class to be....: " + machineLearningManager.getDataInstanceManager().getDataTable().getClassName(dataInstance.getClassData()));
+
+        if (solution == null)
+        {
+            System.out.println("Error: Solution Not Found");
+        } else
+        {
+            System.out.println("Solution: ");
+            System.out.println(solution);
+        }
 
         scanner.close();
     }

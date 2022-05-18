@@ -9,24 +9,22 @@ import java.util.*;
 public class KNNClassifier extends AbstractClassifier
 {
     private List<DataInstance> trainingList;
+
     private int k;
 
-    public KNNClassifier(int k, DataInstanceManager manager, FeatureSelectionTree features)
+    public KNNClassifier(int k)
     {
-        super(manager, features);
         trainingList = new ArrayList<>();
         this.k = k;
     }
 
     @Override
-    public void train()
+    public void train(Set<Integer> featureSubset, List<DataInstance> instances)
     {
-        final Iterator<DataInstance> iterator = manager.iterator();
-        while (iterator.hasNext())
-        {
-            final DataInstance next = iterator.next();
-            trainingList.add(next);
-        }
+        this.currentFeatures = featureSubset;
+
+        trainingList.clear();
+        trainingList.addAll(instances);
     }
 
     @Override
@@ -66,7 +64,6 @@ public class KNNClassifier extends AbstractClassifier
 
         queue.addAll(trainingList);
         Integer classId = getFrequentK(queue);
-        instance.setClassId(classId);
         return classId;
     }
 
@@ -121,6 +118,6 @@ public class KNNClassifier extends AbstractClassifier
 
         priorityQueue.addAll(map.entrySet());
 
-        return priorityQueue.poll().getKey();
+        return Objects.requireNonNull(priorityQueue.poll()).getKey();
     }
 }

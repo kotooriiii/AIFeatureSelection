@@ -38,7 +38,7 @@ public class DataInstanceManager
 
                 final String tuple = fileScanner.nextLine();
 
-                if(tuple.isEmpty())
+                if (tuple.isEmpty())
                     continue;
 
                 String[] tupleSplit = tuple.split("(  )|( -)");
@@ -49,20 +49,21 @@ public class DataInstanceManager
                 {
                     String data = tupleSplit[i];
 
+                    if (data.isEmpty() || data.equals("null"))
+                        continue;
+
                     if (i == 0)
                     {
                         instance.setClassId(getDataTable().addClass(data));
-                    }
-                    else
+                    } else
                     {
 
                         if (isFirst)
                         {
-                            if(isFirstLineIdentifier)
+                            if (isFirstLineIdentifier)
                             {
                                 names.add(data);
-                            }
-                            else
+                            } else
                             {
                                 names.add("" + i);
                             }
@@ -85,6 +86,10 @@ public class DataInstanceManager
         {
             throw new RuntimeException(e);
         }
+
+        //all data is loaded. time to normalize
+        normalize();
+
     }
 
     public Set<Integer> getMaxFeatures()
@@ -111,13 +116,80 @@ public class DataInstanceManager
 
     private String[] getBetterSplit(String[] split)
     {
-        String[] s = new String[split.length-1];
-        for(int i = 1; i < split.length; i++)
+        String[] s = new String[split.length - 1];
+        for (int i = 1; i < split.length; i++)
         {
-            s[i-1] = split[i];
+            s[i - 1] = split[i];
         }
         return s;
     }
 
+    private void normalize()
+    {
+        for (Integer featureId : maxFeatures)
+        {
 
+            double sum = 0;
+            double mean = 0;
+            double standardDeviation;
+            int count = 0;
+
+
+            //get mean to later fill in missing values
+            for (DataInstance instance : dataInstances)
+            {
+                final Double featureData = instance.getFeatureData(featureId);
+                if (featureData == null)
+                    continue;
+
+                count++; //todo do we count the value if its null anyways? maybe if we want to count it move it above featureData. for assignment, we can assume that all instances have full features
+                sum += featureData;
+            }
+
+            mean = sum / count;
+
+            //fill in missing/null values with mean
+            for (DataInstance instance : dataInstances)
+            {
+                final Double featureData = instance.getFeatureData(featureId);
+                if (featureData == null)
+                {
+                    instance.putFeatureData(featureId, mean);
+                }
+            }
+
+            sum = 0;
+            double squaredDataSum = 0;
+            mean = 0;
+            double squaredDataMean = 0;
+            count = 0;
+
+            //remeasure the mean and count. get the squared sum for standard deviation
+            for (DataInstance instance : dataInstances)
+            {
+                //should no longer be null!
+                final Double featureData = instance.getFeatureData(featureId);
+                count++;
+                sum += featureData;
+                squaredDataSum += Math.pow(featureData, 2);
+            }
+
+            mean = sum / count;
+            squaredDataMean = squaredDataSum / count;
+
+
+            standardDeviation = Math.sqrt(squaredDataMean - Math.pow(mean, 2));
+
+            //normalize
+            for (DataInstance instance : dataInstances)
+            {
+                instance.putFeatureData(featureId, (instance.getFeatureData(featureId) - mean) / standardDeviation);
+            }
+        }
+    }
+
+    public List<DataInstance> getDataInstances()
+    {
+        return dataInstances;
+    }
 }

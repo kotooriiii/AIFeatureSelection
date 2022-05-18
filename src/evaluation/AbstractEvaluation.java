@@ -1,17 +1,26 @@
 package evaluation;
 
+import classifier.AbstractClassifier;
+import instance.DataInstance;
+import instance.DataInstanceManager;
 import tree.FeatureSelectionTree;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Every class must implement {@link AbstractEvaluation} in order to be able to be used as an evaluation function for feauture selection.
  */
 public abstract class AbstractEvaluation implements Comparator<FeatureSelectionTree.Node>
 {
+
+    protected AbstractClassifier classifier;
+    protected DataInstanceManager dataInstanceManager;
+
+    public AbstractEvaluation(DataInstanceManager dataInstanceManager, AbstractClassifier classifier)
+    {
+        this.dataInstanceManager = dataInstanceManager;
+        this.classifier = classifier;
+    }
 
     /**
      * This function returns the accuracy of the current node

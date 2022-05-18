@@ -5,20 +5,18 @@ import instance.DataInstance;
 import instance.DataInstanceManager;
 import tree.FeatureSelectionTree;
 
+import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractClassifier
 {
     protected Set<Integer> currentFeatures;
-    protected DataInstanceManager manager;
 
-    public AbstractClassifier(DataInstanceManager manager, FeatureSelectionTree tree)
+    public AbstractClassifier()
     {
-        this.manager = manager;
-        this.currentFeatures = tree.findSolution().getFeatures();
     }
 
-    public abstract void train();
+    public abstract void train(Set<Integer> currentFeatures, List<DataInstance> trainingInstances);
     public abstract Integer test(DataInstance instance);
 
 }

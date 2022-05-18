@@ -22,12 +22,12 @@ public class MachineLearningManager
     private DataInstanceManager dataInstanceManager;
     private boolean isDebug = false;
 
-    public MachineLearningManager(File input)
+    public MachineLearningManager(File input, boolean isIdentifying)
     {
 
         this.setDebug(true);
         this.dataInstanceManager = new DataInstanceManager();
-        this.dataInstanceManager.load(input);
+        this.dataInstanceManager.load(input, isIdentifying);
 
         this.tree = new FeatureSelectionTree(this, dataInstanceManager.getMaxFeatures());
     }

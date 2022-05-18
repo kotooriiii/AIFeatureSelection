@@ -57,7 +57,7 @@ public class GUI
 
     private File populateFile()
     {
-        while(true)
+        while (true)
         {
             System.out.println("-- Type File Name --");
             System.out.println("File name: ");
@@ -66,14 +66,41 @@ public class GUI
             try
             {
                 File file = new File(line);
-                if(!file.exists())
+                if (!file.exists())
                     throw new NullPointerException();
-              return file;
+
+
+                return file;
             } catch (NullPointerException e)
             {
                 System.out.println("Error: Incorrect file name");
             }
         }
+    }
+
+    private boolean isIdentifying()
+    {
+        clearScreen();
+
+        int input = -1;
+
+        while (input != 0 && input != 1)
+        {
+            System.out.println("-- Configuration File --");
+            System.out.println();
+            System.out.println("[EXAMPLE FILE BELOW]");
+            System.out.println("-------------------------------------------------");
+            System.out.println("  Classes  HairLength  ShoeSize  Height  Weight");
+            System.out.println("  Male  5.3  5  8.9  128");
+            System.out.println("  Female  12  5  6  88");
+            System.out.println("-------------------------------------------------");
+            System.out.println();
+            System.out.println("Does the first line of the file identify the name of the features like on the example above? ('1' for yes, '0' for no): ");
+            System.out.println("Note: If this is for the project assignment grade, we recommend you select '0'");
+            input = scanner.nextInt();
+        }
+
+        return input == 1;
     }
 
     private void populateClassifier(MachineLearningManager manager)
@@ -188,8 +215,11 @@ public class GUI
 
         //populateState();
         File file = populateFile();
+        boolean isIdentifying = isIdentifying();
 
-        MachineLearningManager machineLearningManager = new MachineLearningManager(file);
+        clearScreen();
+
+        MachineLearningManager machineLearningManager = new MachineLearningManager(file, isIdentifying);
 
         populateSearch(machineLearningManager);
 

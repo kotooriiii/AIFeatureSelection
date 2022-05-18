@@ -20,9 +20,8 @@ public class DataInstanceManager
 
     }
 
-    public void load(File input)
+    public void load(File input, boolean isFirstLineIdentifier)
     {
-        boolean isFirstLineIdentifier = false; //todo find a way to make this an option
         int lineCounter = 0;
 
         ArrayList<String> names = new ArrayList<>();

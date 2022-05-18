@@ -91,7 +91,8 @@ public class GUI
             switch (input)
             {
                 case 1:
-                    classifier = new KNNClassifier(1); //todo select K?
+                    int k = populateKNN();
+                    classifier = new KNNClassifier(k);
                     break;
                 default:
                     input = 0;
@@ -100,6 +101,23 @@ public class GUI
         }
         manager.setClassifier(classifier);
         clearScreen();
+    }
+
+    private int populateKNN()
+    {
+
+
+        int input = -1;
+        while (input <= 0)
+        {
+            System.out.println("-- Select Your 'K' for KNN --");
+            System.out.println("Enter a positive integer: ");
+
+            input = scanner.nextInt();
+
+        }
+        clearScreen();
+        return input;
     }
 
     private void populateSearch(MachineLearningManager manager)
@@ -200,6 +218,12 @@ public class GUI
 
         clearScreen();
 
+        //todo show times and other steps?
+        //time to load data
+        //time to find solution in tree
+
+        clearScreen();
+
         System.out.println("-");
         System.out.println("-");
 
@@ -216,15 +240,20 @@ public class GUI
             System.out.println(solution);
         }
 
-        //todo show times and other steps?
 
+        System.out.println();
+        System.out.println("-");
+        System.out.println("-");
+        System.out.println("NOTE: Feature subsets are 0-based!");
+        System.out.println("-");
+        System.out.println("-");
         scanner.close();
     }
 
 
     public static void clearScreen()
     {
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < 4; i++)
             System.out.println();
     }
 }

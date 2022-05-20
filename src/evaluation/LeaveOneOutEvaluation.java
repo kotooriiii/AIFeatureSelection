@@ -1,6 +1,7 @@
 package evaluation;
 
 import classifier.AbstractClassifier;
+import driver.MachineLearningManager;
 import instance.DataInstance;
 import instance.DataInstanceManager;
 import tree.FeatureSelectionTree;
@@ -11,20 +12,35 @@ public class LeaveOneOutEvaluation extends AbstractEvaluation
 {
     final int TESTING_SIZE = 1;
 
-    public LeaveOneOutEvaluation(DataInstanceManager dataInstanceManager, AbstractClassifier classifier)
+    public LeaveOneOutEvaluation(MachineLearningManager machineLearningManager, DataInstanceManager dataInstanceManager, AbstractClassifier classifier)
     {
-        super(dataInstanceManager, classifier);
+        super(machineLearningManager, dataInstanceManager, classifier);
     }
 
     @Override
     public double getAccuracy(FeatureSelectionTree.Node node)
     {
+
+        final long beforeEval = System.currentTimeMillis();
         if (node.isSavedCostSet())
         {
+            final long afterEval = System.currentTimeMillis();
+
+            machineLearningManager.getEvaluationAverageTimeList().add(afterEval - beforeEval);
+            if(machineLearningManager.isDebug())
+            {
+                System.out.println("LeaveOneEvaluation: Time to retrieve (saved) average accuracy for subset feature(s) {" + node.getFeatures() + "}: " + machineLearningManager.toStringTime(afterEval-beforeEval) + ".");
+            }
             return node.getSavedCost();
         } else
         {
             node.setSavedCost(getCost(node));
+            final long afterEval = System.currentTimeMillis();
+            machineLearningManager.getEvaluationAverageTimeList().add(afterEval - beforeEval);
+            if(machineLearningManager.isDebug())
+            {
+                System.out.println("LeaveOneEvaluation: Time to retrieve (not saved) average accuracy for subset feature(s) {" + node.getFeatures() + "}: " + machineLearningManager.toStringTime(afterEval-beforeEval) + ".");
+            }
             return node.getSavedCost();
         }
     }
@@ -42,11 +58,25 @@ public class LeaveOneOutEvaluation extends AbstractEvaluation
 
         for (int i = 0; i < times; i++)
         {
+
+            final long beforeClassifier = System.currentTimeMillis();
             final double localAccuracy = getLocalAccuracy(node.getFeatures(), currentTrainingIndecesSet);
+            final long afterClassifier = System.currentTimeMillis();
+            machineLearningManager.getClassifierAverageTimeList().add(afterClassifier - beforeClassifier);
+
             sum += localAccuracy;
+            if (machineLearningManager.isDebug())
+                System.out.println("LeaveOneOutEvaluation: Measuring local accuracy #" + i + " for subset feature(s) {" + node.getFeatures() + "} to be " + localAccuracy + ". Time taken: " + machineLearningManager.toStringTime(afterClassifier-beforeClassifier));
+
         }
 
-        return sum / times;
+        double cost = sum / times;
+
+        if (machineLearningManager.isDebug())
+            System.out.println("LeaveOneOutEvaluation: Measuring average accuracy for subset feature(s) {" + node.getFeatures() + "} to be " + cost + ".");
+
+
+        return cost;
     }
 
     private double getLocalAccuracy(Set<Integer> features, HashSet<Integer> currentTrainingIndecesSet)

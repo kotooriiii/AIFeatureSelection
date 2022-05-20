@@ -1,5 +1,6 @@
 package classifier;
 
+import driver.MachineLearningManager;
 import instance.DataInstance;
 import instance.DataInstanceManager;
 import tree.FeatureSelectionTree;
@@ -12,8 +13,9 @@ public class KNNClassifier extends AbstractClassifier
 
     private int k;
 
-    public KNNClassifier(int k)
+    public KNNClassifier(MachineLearningManager machineLearningManager, int k)
     {
+        super(machineLearningManager);
         trainingList = new ArrayList<>();
         this.k = k;
     }
@@ -22,6 +24,12 @@ public class KNNClassifier extends AbstractClassifier
     public void train(Set<Integer> featureSubset, List<DataInstance> instances)
     {
         this.currentFeatures = featureSubset;
+
+        if (manager.isDebug())
+        {
+            System.out.println("KNNClassifier: Training with feature(s) {" + featureSubset + "}");
+            System.out.println("KNNClassifier: Training with instance(s) {" + instances + "}");
+        }
 
         trainingList.clear();
         trainingList.addAll(instances);
@@ -64,6 +72,10 @@ public class KNNClassifier extends AbstractClassifier
 
         queue.addAll(trainingList);
         Integer classId = getFrequentK(queue);
+
+        if (manager.isDebug())
+            System.out.println("KNNClassifier: Testing found most frequent K class/group for instance #" + instance.toString() + " with K=" + k + " is class id: " + classId + ".");
+
         return classId;
     }
 

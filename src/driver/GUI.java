@@ -14,6 +14,7 @@ import tree.FeatureSelectionTree;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -103,6 +104,25 @@ public class GUI
         return input == 1;
     }
 
+    private boolean isDebugMode()
+    {
+        clearScreen();
+
+        int input = -1;
+
+        while (input != 0 && input != 1)
+        {
+            System.out.println("-- Debug Mode --");
+            System.out.println("Do you want to print all debugging messages to console? ('1' for yes, '0' for no): ");
+            System.out.println("Note: Pressing '1' can spam the console.");
+            System.out.println("Note: Pressing '0' will STILL send you the total time it takes for each step.");
+
+            input = scanner.nextInt();
+        }
+
+        return input == 1;
+    }
+
     private void populateClassifier(MachineLearningManager manager)
     {
 
@@ -119,7 +139,7 @@ public class GUI
             {
                 case 1:
                     int k = populateKNN();
-                    classifier = new KNNClassifier(k);
+                    classifier = new KNNClassifier(manager, k);
                     break;
                 default:
                     input = 0;
@@ -193,10 +213,10 @@ public class GUI
             switch (input)
             {
                 case 1:
-                    evaluation = new RandomEvaluation(manager.getDataInstanceManager(), manager.getClassifier());
+                    evaluation = new RandomEvaluation(manager, manager.getDataInstanceManager(), manager.getClassifier());
                     break;
                 case 2:
-                    evaluation = new LeaveOneOutEvaluation(manager.getDataInstanceManager(), manager.getClassifier());
+                    evaluation = new LeaveOneOutEvaluation(manager, manager.getDataInstanceManager(), manager.getClassifier());
                     break;
                 default:
                     input = 0;
@@ -213,13 +233,17 @@ public class GUI
     public void sendMenu()
     {
 
+
         //populateState();
         File file = populateFile();
         boolean isIdentifying = isIdentifying();
 
         clearScreen();
 
-        MachineLearningManager machineLearningManager = new MachineLearningManager(file, isIdentifying);
+        final boolean debugMode = isDebugMode();
+
+        clearScreen();
+        MachineLearningManager machineLearningManager = new MachineLearningManager(file, isIdentifying, debugMode);
 
         populateSearch(machineLearningManager);
 
@@ -243,10 +267,33 @@ public class GUI
         System.out.println("-");
         System.out.println("-");
 
+        long beforeSolution = System.currentTimeMillis();
+
+
         final FeatureSelectionTree.Node solution = machineLearningManager.getTree().findSolution();
 
 
+        long afterSolution = System.currentTimeMillis();
+
         clearScreen();
+
+        System.out.println("-");
+        System.out.println("-");
+        System.out.println("-- Time Taken --");
+        System.out.println();
+        System.out.println("Average Classifier Time: " +  machineLearningManager.toStringTime((long) machineLearningManager.getAverageClassifierTime()));
+        System.out.println("Average Evaluation Time: " +  machineLearningManager.toStringTime((long) machineLearningManager.getAverageEvaluationTime()));
+        System.out.println("Time to find best feature subset: " +  machineLearningManager.toStringTime(afterSolution-beforeSolution));
+        System.out.println("Time to load datasets into memory (cleaning noise, adding to memory, mapping ids to instances, etc): " +  machineLearningManager.toStringTime(machineLearningManager.getLoadDataTime()));
+        System.out.println();
+        System.out.println("TOTAL TIME (time to find best feature subset + time to load dataset): " + (machineLearningManager.toStringTime(afterSolution-beforeSolution + machineLearningManager.getLoadDataTime())));
+        System.out.println();
+        System.out.println("Note: Does not account user input.");
+
+
+        System.out.println("-");
+        System.out.println("-");
+
 
         //todo show times and other steps?
         //time to load data

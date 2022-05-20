@@ -7,14 +7,12 @@ public class DataInstance
     private Integer classId;
     private HashMap<Integer, Double> featuresId;
 
-    public DataInstance(Integer classId)
-    {
-        this.classId = classId;
-        this.featuresId = new HashMap<>();
-    }
+    private int instanceId;
 
-    public DataInstance()
+
+    public DataInstance(int instanceId)
     {
+        this.instanceId = instanceId;
         this.classId = -1;
         this.featuresId = new HashMap<>();
     }
@@ -42,5 +40,11 @@ public class DataInstance
     public HashMap<Integer, Double> getFeaturesId()
     {
         return featuresId;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "" + instanceId;
     }
 }

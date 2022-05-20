@@ -10,6 +10,7 @@ import search.ForwardSelectionSearch;
 import tree.FeatureSelectionTree;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.PriorityQueue;
 
 public class MachineLearningManager
@@ -22,12 +23,20 @@ public class MachineLearningManager
     private DataInstanceManager dataInstanceManager;
     private boolean isDebug = false;
 
-    public MachineLearningManager(File input, boolean isIdentifying)
-    {
+    private ArrayList<Long> classifierAverageTime;
+    private ArrayList<Long> evaluationAverageTime;
 
-        this.setDebug(true);
-        this.dataInstanceManager = new DataInstanceManager();
+    private long loadDataTime;
+
+
+    public MachineLearningManager(File input, boolean isIdentifying, boolean isDebug)
+    {
+        this.isDebug =isDebug;
+
+        this.dataInstanceManager = new DataInstanceManager(this);
         this.dataInstanceManager.load(input, isIdentifying);
+        this.classifierAverageTime = new ArrayList<>();
+        this.evaluationAverageTime = new ArrayList<>();
 
         this.tree = new FeatureSelectionTree(this, dataInstanceManager.getMaxFeatures());
     }
@@ -79,6 +88,48 @@ public class MachineLearningManager
 
     }
 
+    public double getAverageClassifierTime()
+    {
+        long classifierTime = 0;
+        for(int i = 0; i < classifierAverageTime.size(); i++)
+        {
+            classifierTime += classifierAverageTime.get(i);
+        }
+
+        return (double) classifierTime/classifierAverageTime.size();
+    }
+
+    public double getAverageEvaluationTime()
+    {
+        long evaluationTime = 0;
+        for(int i = 0; i < evaluationAverageTime.size(); i++)
+        {
+            evaluationTime += evaluationAverageTime.get(i);
+        }
+
+        return (double) evaluationTime/evaluationAverageTime.size();
+    }
+
+    public ArrayList<Long> getClassifierAverageTimeList()
+    {
+        return classifierAverageTime;
+    }
+
+    public ArrayList<Long> getEvaluationAverageTimeList()
+    {
+        return evaluationAverageTime;
+    }
+
+    public void setLoadDataTime(long loadDataTime)
+    {
+        this.loadDataTime = loadDataTime;
+    }
+
+    public long getLoadDataTime()
+    {
+        return loadDataTime;
+    }
+
     public void setDebug(boolean isDebug)
     {
         this.isDebug = isDebug;
@@ -87,5 +138,14 @@ public class MachineLearningManager
     public boolean isDebug()
     {
         return isDebug;
+    }
+
+    public String toStringTime(long millis)
+    {
+        long seconds = millis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+        return  days + "d:" + hours % 24 + "h:" + minutes % 60 + "m:" + seconds % 60 + "s:" + millis % 1000  + "ms";
     }
 }

@@ -1,5 +1,7 @@
 package instance;
 
+import driver.MachineLearningManager;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -11,29 +13,38 @@ public class DataInstanceManager
 
     private Set<Integer> maxFeatures;
 
+    private MachineLearningManager manager;
 
-    public DataInstanceManager()
+
+    public DataInstanceManager(MachineLearningManager manager)
     {
         this.dataInstances = new ArrayList<>();
         this.dataTable = new DataTable();
         this.maxFeatures = new HashSet<>();
+        this.manager = manager;
 
     }
 
     public void load(File input, boolean isFirstLineIdentifier)
     {
+
+        if(manager.isDebug())
+        System.out.println("DataInstanceManager: Loading dataset...");
         int lineCounter = 0;
+
+        final long beforeLoad = System.currentTimeMillis();
 
         ArrayList<String> names = new ArrayList<>();
         try
         {
             Scanner fileScanner = new Scanner(input);
             boolean isFirst = true;
+            int instanceId = 0;
             while (fileScanner.hasNextLine())
             {
                 lineCounter++;
 
-                DataInstance instance = new DataInstance();
+                DataInstance instance = new DataInstance(instanceId++);
 
                 final String tuple = fileScanner.nextLine();
 
@@ -88,6 +99,13 @@ public class DataInstanceManager
 
         //all data is loaded. time to normalize
         normalize();
+
+        final long afterLoad = System.currentTimeMillis();
+
+        manager.setLoadDataTime(afterLoad-beforeLoad);
+        if(manager.isDebug())
+            System.out.println("DataInstanceManager: Completed loading dataset.");
+
 
     }
 

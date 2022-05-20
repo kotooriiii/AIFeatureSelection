@@ -72,6 +72,8 @@ public class FeatureSelectionTree
 
         public double getSavedCost()
         {
+            if (manager.isDebug())
+                System.out.println("Evaluation Helper Function: Found saved average accuracy with feature(s) {" + getFeatures() + "} to be " + savedCost + ".");
             return savedCost;
         }
 
@@ -255,7 +257,6 @@ public class FeatureSelectionTree
     public Node findSolution()
     {
 
-        boolean isFirst = true;
         //Keep looping until the frontier is empty
         while (!frontier.isEmpty())
         {
@@ -265,9 +266,8 @@ public class FeatureSelectionTree
             final Node poll = frontier.poll();
             frontier.clear(); //greedy algorithm, clear dont backtrack
 
-            if (isFirst)
+            if (poll.getFeatures().isEmpty())
             {
-                isFirst = false;
                 if (manager.isDebug())
                 {
                     System.out.println("Default Rate Accuracy: " + format(manager.getEvaluation().getAccuracy(poll)));

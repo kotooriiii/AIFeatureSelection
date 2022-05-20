@@ -1,6 +1,7 @@
 package evaluation;
 
 import classifier.AbstractClassifier;
+import driver.MachineLearningManager;
 import instance.DataInstance;
 import instance.DataInstanceManager;
 import tree.FeatureSelectionTree;
@@ -15,9 +16,11 @@ public abstract class AbstractEvaluation implements Comparator<FeatureSelectionT
 
     protected AbstractClassifier classifier;
     protected DataInstanceManager dataInstanceManager;
+    protected MachineLearningManager machineLearningManager;
 
-    public AbstractEvaluation(DataInstanceManager dataInstanceManager, AbstractClassifier classifier)
+    public AbstractEvaluation(MachineLearningManager machineLearningManager, DataInstanceManager dataInstanceManager, AbstractClassifier classifier)
     {
+        this.machineLearningManager = machineLearningManager;
         this.dataInstanceManager = dataInstanceManager;
         this.classifier = classifier;
     }

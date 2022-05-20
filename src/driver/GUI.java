@@ -284,7 +284,7 @@ public class GUI
         System.out.println("Average Classifier Time: " +  machineLearningManager.toStringTime((long) machineLearningManager.getAverageClassifierTime()));
         System.out.println("Average Evaluation Time: " +  machineLearningManager.toStringTime((long) machineLearningManager.getAverageEvaluationTime()));
         System.out.println("Time to find best feature subset: " +  machineLearningManager.toStringTime(afterSolution-beforeSolution));
-        System.out.println("Time to load datasets into memory (cleaning noise, adding to memory, mapping ids to instances, etc): " +  machineLearningManager.toStringTime(machineLearningManager.getLoadDataTime()));
+        System.out.println("Time to load datasets into memory (cleaning noise, adding to memory, mapping ids to instances, normalization, etc): " +  machineLearningManager.toStringTime(machineLearningManager.getLoadDataTime()));
         System.out.println();
         System.out.println("TOTAL TIME (time to find best feature subset + time to load dataset): " + (machineLearningManager.toStringTime(afterSolution-beforeSolution + machineLearningManager.getLoadDataTime())));
         System.out.println();

@@ -281,12 +281,12 @@ public class GUI
         System.out.println("-");
         System.out.println("-- Time Taken --");
         System.out.println();
-        System.out.println("Average Classifier Time: " +  machineLearningManager.toStringTime((long) machineLearningManager.getAverageClassifierTime()));
-        System.out.println("Average Evaluation Time: " +  machineLearningManager.toStringTime((long) machineLearningManager.getAverageEvaluationTime()));
-        System.out.println("Time to find best feature subset: " +  machineLearningManager.toStringTime(afterSolution-beforeSolution));
-        System.out.println("Time to load datasets into memory (cleaning noise, adding to memory, mapping ids to instances, normalization, etc): " +  machineLearningManager.toStringTime(machineLearningManager.getLoadDataTime()));
+        System.out.println("Average Classifier Time: " + machineLearningManager.toStringTime((long) machineLearningManager.getAverageClassifierTime()));
+        System.out.println("Average Evaluation Time: " + machineLearningManager.toStringTime((long) machineLearningManager.getAverageEvaluationTime()));
+        System.out.println("Time to find best feature subset: " + machineLearningManager.toStringTime(afterSolution - beforeSolution));
+        System.out.println("Time to load datasets into memory (cleaning noise, adding to memory, mapping ids to instances, normalization, etc): " + machineLearningManager.toStringTime(machineLearningManager.getLoadDataTime()));
         System.out.println();
-        System.out.println("TOTAL TIME (time to find best feature subset + time to load dataset): " + (machineLearningManager.toStringTime(afterSolution-beforeSolution + machineLearningManager.getLoadDataTime())));
+        System.out.println("TOTAL TIME (time to find best feature subset + time to load dataset): " + (machineLearningManager.toStringTime(afterSolution - beforeSolution + machineLearningManager.getLoadDataTime())));
         System.out.println();
         System.out.println("Note: Does not account user input.");
 
@@ -325,6 +325,35 @@ public class GUI
         System.out.println("-");
         System.out.println("-");
         scanner.close();
+
+
+        try
+        {
+            FileWriter fw = new FileWriter("solutions.csv", false);
+
+            String s = "";
+
+            for (DataInstance dataInstance : machineLearningManager.getDataInstanceManager().getDataInstances())
+            {
+                s = "";
+                s += dataInstance.getClassData() + ", ";
+
+                for (int id : solution.getFeatures())
+                {
+                    final Double data = dataInstance.getFeatureData(id);
+                    s += data + ", ";
+                }
+
+                s = s.substring(0, s.length() - 2) + "\n";
+                fw.write(s);
+            }
+            fw.close();
+
+
+        } catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
 

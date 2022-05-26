@@ -19,6 +19,8 @@ public class FeatureSelectionTree
 
     private MachineLearningManager manager;
 
+    private boolean isInformative = true;
+
     /**
      * The set (unique) of features for feature selection
      */
@@ -266,11 +268,12 @@ public class FeatureSelectionTree
             final Node poll = frontier.poll();
             frontier.clear(); //greedy algorithm, clear dont backtrack
 
-            if (poll.getFeatures().isEmpty())
+            //always true but to show that we USED to check for empty features only
+            if (true || poll.getFeatures().isEmpty())
             {
-                if (manager.isDebug())
+                if (manager.isDebug() || isInformative)
                 {
-                    System.out.println("Default Rate Accuracy: " + format(manager.getEvaluation().getAccuracy(poll)));
+                    System.out.println("Default/Starting Rate Accuracy: " + format(manager.getEvaluation().getAccuracy(poll)));
                 }
             }
 
@@ -279,20 +282,20 @@ public class FeatureSelectionTree
 
             for (Node node : poll.getChildren())
             {
-                if (manager.isDebug())
+                if (manager.isDebug() || isInformative)
                     System.out.println("Using feature(s) {" + node.getFeatures().toString() + "} accuracy is " + format(manager.getEvaluation().getAccuracy(node)));
 
             }
 
 
-            if (manager.isDebug())
+            if (manager.isDebug() || isInformative)
             {
                 System.out.println();
             }
 
             if (manager.getEvaluation().compare(this.frontier.peek(), poll) > 0 || poll.getChildren().isEmpty())
             {
-                if (manager.isDebug())
+                if (manager.isDebug() || isInformative)
                 {
                     System.out.println("Accuracy decreased in all children.");
                     System.out.println("Search finished.");
@@ -302,14 +305,14 @@ public class FeatureSelectionTree
                 break;
             } else
             {
-                if (manager.isDebug())
+                if (manager.isDebug() || isInformative)
                 {
                     System.out.println("Accuracy increased in a child.");
                     System.out.println("Choosing child with best feature subset using feature(s) {" + this.frontier.peek().getFeatures().toString() + "} accuracy is " + format(manager.getEvaluation().getAccuracy(this.frontier.peek())));
                 }
             }
 
-            if (manager.isDebug()) System.out.println();
+            if (manager.isDebug() || isInformative) System.out.println();
         }
         return solution;
     }
@@ -360,5 +363,10 @@ public class FeatureSelectionTree
     public String format(double value)
     {
         return String.format("%.2f", value * 100) + "%";
+    }
+
+    public void setInformative(boolean informative)
+    {
+        isInformative = informative;
     }
 }

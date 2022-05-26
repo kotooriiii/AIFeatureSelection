@@ -31,14 +31,13 @@ public class MachineLearningManager
 
     public MachineLearningManager(File input, boolean isIdentifying, boolean isDebug)
     {
-        this.isDebug =isDebug;
-
         this.dataInstanceManager = new DataInstanceManager(this);
         this.dataInstanceManager.load(input, isIdentifying);
         this.classifierAverageTime = new ArrayList<>();
         this.evaluationAverageTime = new ArrayList<>();
 
         this.tree = new FeatureSelectionTree(this, dataInstanceManager.getMaxFeatures());
+        this.tree.setInformative(isDebug);
     }
 
     public AbstractClassifier getClassifier()
